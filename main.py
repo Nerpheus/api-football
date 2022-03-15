@@ -89,7 +89,7 @@ class TeamWorker(Thread):
                     'x-rapidapi-host': 'v3.football.api-sports.io'
                 }
 
-                response = requests.get(url=url, headers=headers, timeout=1)
+                response = requests.get(url=url, headers=headers, timeout=10)
                 data = response.json()['response']
 
                 # print(json.dumps(data, indent=4))
