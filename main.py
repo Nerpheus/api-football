@@ -108,7 +108,7 @@ class TeamWorker(Thread):
 
                     teamtoseason = {'season_id': season_id, 'team_id': team['id']}
 
-                    # print(team)
+                    print(team)
                     mydb.updateTeam(team)
                     mydb.updateTeamToSeason(teamtoseason)
 
