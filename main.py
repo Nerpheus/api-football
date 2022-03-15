@@ -28,7 +28,7 @@ def countries():
             r = requests.get(d['flag'], allow_redirects=True)
             open(country['flag'], 'wb').write(r.content)
 
-        # print(country)
+        print(country)
         mydb.updateCountry(country)
 
 
@@ -66,7 +66,7 @@ def leagues():
         for s in seasons:
             season = {'year': s['year'], 'start': s['start'], 'end': s['end'], 'current': s['current'],
                       'leagueid': d['league']['id'], 'slug': s['year']}
-            # print(season)
+            print(season)
             mydb.updateSeason(season)
 
     # print(json.dumps(data, indent=4))
@@ -108,7 +108,7 @@ class TeamWorker(Thread):
 
                     teamtoseason = {'season_id': season_id, 'team_id': team['id']}
 
-                    # print(team)
+                    print(team)
                     mydb.updateTeam(team)
                     mydb.updateTeamToSeason(teamtoseason)
 
