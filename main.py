@@ -59,14 +59,14 @@ def leagues():
             league['countryid'] = mydb.getCountry(d['country']['name'])[0][0]
 
         # print(json.dumps(d, indent=4))
-        # print(league)
+        print(league)
         mydb.updateLeague(league)
 
         seasons = d['seasons']
         for s in seasons:
             season = {'year': s['year'], 'start': s['start'], 'end': s['end'], 'current': s['current'],
                       'leagueid': d['league']['id'], 'slug': s['year']}
-            # print(season)
+            print(season)
             mydb.updateSeason(season)
 
     # print(json.dumps(data, indent=4))
@@ -302,9 +302,9 @@ def test():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    countries()
+    # countries()
     leagues()
-    teams()
+    # teams()
     # fixtures()
     # events()
     # odds()
