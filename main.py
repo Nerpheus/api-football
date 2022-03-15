@@ -28,7 +28,7 @@ def countries():
             r = requests.get(d['flag'], allow_redirects=True)
             open(country['flag'], 'wb').write(r.content)
 
-        # print(country)
+        print(country)
         mydb.updateCountry(country)
 
 
