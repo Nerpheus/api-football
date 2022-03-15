@@ -28,7 +28,7 @@ def countries():
             r = requests.get(d['flag'], allow_redirects=True)
             open(country['flag'], 'wb').write(r.content)
 
-        print(country)
+        # print(country)
         mydb.updateCountry(country)
 
 
@@ -66,7 +66,7 @@ def leagues():
         for s in seasons:
             season = {'year': s['year'], 'start': s['start'], 'end': s['end'], 'current': s['current'],
                       'leagueid': d['league']['id'], 'slug': s['year']}
-            print(season)
+            # print(season)
             mydb.updateSeason(season)
 
     # print(json.dumps(data, indent=4))
@@ -108,7 +108,7 @@ class TeamWorker(Thread):
 
                     teamtoseason = {'season_id': season_id, 'team_id': team['id']}
 
-                    print(team)
+                    # print(team)
                     mydb.updateTeam(team)
                     mydb.updateTeamToSeason(teamtoseason)
 
@@ -122,7 +122,7 @@ class TeamWorker(Thread):
 def teams():
     queue = Queue()
     # Create 10 worker threads
-    for x in range(4):
+    for x in range(2):
         worker = TeamWorker(queue)
         # Setting daemon to True will let the main thread exit even though the workers are blocking
         worker.daemon = True
@@ -182,7 +182,7 @@ def fixtures():
                        'slug': d['teams']['home']['name'] + "-" + d['teams']['away']['name'] + "-" + str(
                            d['fixture']['id'])}
 
-            print(fixture)
+            # print(fixture)
             mydb.updateFixture(fixture)
 
             url = "https://v3.football.api-sports.io/fixtures/statistics?fixture={}".format(match_id)
