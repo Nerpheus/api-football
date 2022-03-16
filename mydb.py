@@ -261,3 +261,63 @@ def updateStats(stats):
         columns=columns, values=', '.join(values), spalten=", ".join(spalten))
 
     pushQuery(sql)
+
+
+def updateBookmaker(bookie):
+    columns = ', '.join(bookie.keys())
+    spalten = []
+    values = []
+    for k, v in bookie.items():
+        if v is None:
+            spalten.append('''{}=Null'''.format(k))
+            values.append('''Null''')
+        else:
+            spalten.append('''{}="{}"'''.format(k, v))
+            values.append('''"{}"'''.format(v))
+
+    sql = '''INSERT INTO bookmakers ({columns}) 
+                    VALUES ({values}) 
+                    ON DUPLICATE KEY UPDATE {spalten}'''.format(
+        columns=columns, values=', '.join(values), spalten=", ".join(spalten))
+
+    pushQuery(sql)
+
+
+def updateBets(bet):
+    columns = ', '.join(bet.keys())
+    spalten = []
+    values = []
+    for k, v in bet.items():
+        if v is None:
+            spalten.append('''{}=Null'''.format(k))
+            values.append('''Null''')
+        else:
+            spalten.append('''{}="{}"'''.format(k, v))
+            values.append('''"{}"'''.format(v))
+
+    sql = '''INSERT INTO bets ({columns}) 
+                        VALUES ({values}) 
+                        ON DUPLICATE KEY UPDATE {spalten}'''.format(
+        columns=columns, values=', '.join(values), spalten=", ".join(spalten))
+
+    pushQuery(sql)
+
+
+def updateOdds(quoten):
+    columns = ', '.join(quoten.keys())
+    spalten = []
+    values = []
+    for k, v in quoten.items():
+        if v is None:
+            spalten.append('''{}=Null'''.format(k))
+            values.append('''Null''')
+        else:
+            spalten.append('''{}="{}"'''.format(k, v))
+            values.append('''"{}"'''.format(v))
+
+    sql = '''INSERT INTO odds ({columns}) 
+                            VALUES ({values}) 
+                            ON DUPLICATE KEY UPDATE {spalten}'''.format(
+        columns=columns, values=', '.join(values), spalten=", ".join(spalten))
+
+    pushQuery(sql)
