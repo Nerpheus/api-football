@@ -75,9 +75,11 @@ class Worker(Thread):
                         'x-rapidapi-host': 'v3.football.api-sports.io'
                     }
 
-                    response = requests.get(url=url, headers=headers, timeout=60)
+                    status = False
 
-                    if response.status_code != 200:
+                    while not status:
+                        response = requests.get(url=url, headers=headers, timeout=60)
+                        status = response.ok
                         logging.info(response.status_code)
                         logging.info(response.json())
 
