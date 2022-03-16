@@ -80,8 +80,9 @@ class Worker(Thread):
                     while not status:
                         response = requests.get(url=url, headers=headers, timeout=60)
                         status = response.ok
-                        logging.info(response.status_code)
-                        logging.info(response.json())
+                        if not status:
+                            logging.info(response.status_code)
+                            logging.info(response.json())
 
                     statistics = response.json()['response']
 
