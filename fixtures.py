@@ -79,6 +79,7 @@ class Worker(Thread):
 
                     if response.status_code != 200:
                         logging.info(response.status_code)
+                        logging.info(response.json())
 
                     statistics = response.json()['response']
 
