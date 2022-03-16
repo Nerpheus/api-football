@@ -241,3 +241,23 @@ def updateFixture(fixture):
         columns=columns, values=', '.join(values), spalten=", ".join(spalten))
 
     pushQuery(sql)
+
+
+def updateStats(stats):
+    columns = ', '.join(stats.keys())
+    spalten = []
+    values = []
+    for k, v in stats.items():
+        if v is None:
+            spalten.append('''{}=Null'''.format(k))
+            values.append('''Null''')
+        else:
+            spalten.append('''{}="{}"'''.format(k, v))
+            values.append('''"{}"'''.format(v))
+
+    sql = '''INSERT INTO stats ({columns}) 
+                VALUES ({values}) 
+                ON DUPLICATE KEY UPDATE {spalten}'''.format(
+        columns=columns, values=', '.join(values), spalten=", ".join(spalten))
+
+    pushQuery(sql)
