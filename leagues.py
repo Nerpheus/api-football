@@ -19,7 +19,7 @@ def leagues():
                   'slug': d['league']['name'].replace(' - ', '-').replace('.', '').replace(' ', '-').lower()}
 
         if d['league']['logo'] is not None:
-            league['logo'] = 'home/nico/api-football/league-logos/{}'.format(d['league']['logo'].split('/')[-1])
+            league['logo'] = '/home/nico/api-football/league-logos/{}'.format(d['league']['logo'].split('/')[-1])
             r = requests.get(d['league']['logo'], allow_redirects=True)
             open(league['logo'], 'wb').write(r.content)
 
