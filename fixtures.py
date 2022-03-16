@@ -37,7 +37,9 @@ class Worker(Thread):
                 }
 
                 response = requests.get(url=url, headers=headers, timeout=60)
-                logging.info(response.status_code)
+
+                if response.status_code != 200:
+                    logging.info(response.status_code)
 
                 data = response.json()['response']
 
@@ -74,7 +76,9 @@ class Worker(Thread):
                     }
 
                     response = requests.get(url=url, headers=headers, timeout=60)
-                    logging.info(response.status_code)
+
+                    if response.status_code != 200:
+                        logging.info(response.status_code)
 
                     statistics = response.json()['response']
 
