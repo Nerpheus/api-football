@@ -4,6 +4,7 @@ import mydb
 import os
 
 
+# 1 call per day.
 def bookmakers():
     url = "https://v3.football.api-sports.io/odds/bookmakers"
 

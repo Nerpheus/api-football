@@ -7,6 +7,12 @@ from threading import Thread
 import os
 
 
+# 1 call per minute for the leagues, teams, fixtures
+# who have at least one fixture in progress
+# otherwise 1 call per day.
+
+# You can also retrieve all the events of the fixtures in progress
+# thanks to the endpoint fixtures?live=all
 class Worker(Thread):
     def __init__(self, queue):
         Thread.__init__(self)
@@ -90,15 +96,12 @@ class Worker(Thread):
                         print(stats)
                         mydb.updateStats(stats)
 
+                mydb.seasonLastUpdated(season_id, date.today())
+
             finally:
                 self.queue.task_done()
 
 
-# 1 call per minute for the leagues, teams, fixtures
-# who have at least one fixture in progress
-# otherwise 1 call per day.
-# You can also retrieve all the events of the fixtures in progress
-# thanks to the endpoint fixtures?live=all
 def fixtures():
     queue = Queue()
     # Create 10 worker threads
