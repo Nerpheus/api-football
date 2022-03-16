@@ -5,6 +5,11 @@ from datetime import datetime, date
 from queue import Queue
 from threading import Thread
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+logger = logging.getLogger(__name__)
 
 
 # 1 call per minute for the leagues, teams, fixtures
@@ -32,6 +37,8 @@ class Worker(Thread):
                 }
 
                 response = requests.get(url=url, headers=headers, timeout=60)
+                logging.info(response.status_code)
+
                 data = response.json()['response']
 
                 # print(json.dumps(data, indent=4))
@@ -67,6 +74,8 @@ class Worker(Thread):
                     }
 
                     response = requests.get(url=url, headers=headers, timeout=60)
+                    logging.info(response.status_code)
+
                     statistics = response.json()['response']
 
                     # print(json.dumps(statistics, indent=4))
