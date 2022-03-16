@@ -20,7 +20,7 @@ def countries():
             country['code2'] = d['code']
 
         if d['flag'] is not None:
-            country['flag'] = 'country-flags/{}'.format(d['flag'].split('/')[-1])
+            country['flag'] = 'home/nico/api-football/country-flags/{}'.format(d['flag'].split('/')[-1])
             r = requests.get(d['flag'], allow_redirects=True)
             open(country['flag'], 'wb').write(r.content)
 

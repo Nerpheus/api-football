@@ -37,7 +37,7 @@ class Worker(Thread):
                         team['code'] = d['team']['code']
 
                     if d['team']['logo'] is not None:
-                        team['logo'] = 'team-logos/{}'.format(d['team']['logo'].split('/')[-1])
+                        team['logo'] = 'home/nico/api-football/team-logos/{}'.format(d['team']['logo'].split('/')[-1])
                         r = requests.get(d['team']['logo'], allow_redirects=True)
                         open(team['logo'], 'wb').write(r.content)
 
