@@ -6,7 +6,7 @@ import os
 
 # 1 call per day.
 def bets():
-    url = "https://v3.football.api-sports.io/odds/bets"
+    url = "https://v3.football.api-sports.io/status"
 
     headers = {
         'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
@@ -14,16 +14,29 @@ def bets():
     }
 
     response = requests.get(url=url, headers=headers, timeout=60)
-    bettings = response.json()['response']
+    current = response.json()['response']['requests']['current']
+    limit_day = response.json()['response']['requests']['limit_day']
 
-    # print(json.dumps(bookies, indent=4))
+    if current < limit_day:
 
-    for b in bettings:
-        if b['name'] is not None:
-            bet = {'id': b['id'], 'name': b['name']}
+        url = "https://v3.football.api-sports.io/odds/bets"
 
-            print(bet)
-            mydb.updateBets(bet)
+        headers = {
+            'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+            'x-rapidapi-host': 'v3.football.api-sports.io'
+        }
+
+        response = requests.get(url=url, headers=headers, timeout=60)
+        bettings = response.json()['response']
+
+        # print(json.dumps(bookies, indent=4))
+
+        for b in bettings:
+            if b['name'] is not None:
+                bet = {'id': b['id'], 'name': b['name']}
+
+                print(bet)
+                mydb.updateBets(bet)
 
 
 # Press the green button in the gutter to run the script.

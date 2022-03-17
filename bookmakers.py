@@ -6,7 +6,7 @@ import os
 
 # 1 call per day.
 def bookmakers():
-    url = "https://v3.football.api-sports.io/odds/bookmakers"
+    url = "https://v3.football.api-sports.io/status"
 
     headers = {
         'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
@@ -14,15 +14,28 @@ def bookmakers():
     }
 
     response = requests.get(url=url, headers=headers, timeout=60)
-    bookies = response.json()['response']
+    current = response.json()['response']['requests']['current']
+    limit_day = response.json()['response']['requests']['limit_day']
 
-    # print(json.dumps(bookies, indent=4))
+    if current < limit_day:
 
-    for b in bookies:
-        bookie = {'id': b['id'], 'name': b['name']}
+        url = "https://v3.football.api-sports.io/odds/bookmakers"
 
-        print(bookie)
-        mydb.updateBookmaker(bookie)
+        headers = {
+            'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+            'x-rapidapi-host': 'v3.football.api-sports.io'
+        }
+
+        response = requests.get(url=url, headers=headers, timeout=60)
+        bookies = response.json()['response']
+
+        # print(json.dumps(bookies, indent=4))
+
+        for b in bookies:
+            bookie = {'id': b['id'], 'name': b['name']}
+
+            print(bookie)
+            mydb.updateBookmaker(bookie)
 
 
 # Press the green button in the gutter to run the script.

@@ -17,7 +17,7 @@ class Worker(Thread):
             # Get the work from the queue and expand the tuple
             season_id, year, league_id, country = self.queue.get()
             try:
-                url = 'https://v3.football.api-sports.io/teams?league={}&season={}'.format(league_id, year)
+                url = "https://v3.football.api-sports.io/status"
 
                 headers = {
                     'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
@@ -25,27 +25,40 @@ class Worker(Thread):
                 }
 
                 response = requests.get(url=url, headers=headers, timeout=60)
-                data = response.json()['response']
+                current = response.json()['response']['requests']['current']
+                limit_day = response.json()['response']['requests']['limit_day']
 
-                # print(json.dumps(data, indent=4))
+                if current < limit_day:
 
-                for d in data:
-                    team = {'id': d['team']['id'], 'name': d['team']['name'], 'national': d['team']['national'],
-                            'countryid': country, 'slug': d['team']['name'].replace(' ', '-').lower()}
+                    url = 'https://v3.football.api-sports.io/teams?league={}&season={}'.format(league_id, year)
 
-                    if d['team']['code'] is not None:
-                        team['code'] = d['team']['code']
+                    headers = {
+                        'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+                        'x-rapidapi-host': 'v3.football.api-sports.io'
+                    }
 
-                    if d['team']['logo'] is not None:
-                        team['logo'] = '/home/nico/api-football/team-logos/{}'.format(d['team']['logo'].split('/')[-1])
-                        r = requests.get(d['team']['logo'], allow_redirects=True)
-                        open(team['logo'], 'wb').write(r.content)
+                    response = requests.get(url=url, headers=headers, timeout=60)
+                    data = response.json()['response']
 
-                    teamtoseason = {'season_id': season_id, 'team_id': team['id']}
+                    # print(json.dumps(data, indent=4))
 
-                    print(team)
-                    mydb.updateTeam(team)
-                    mydb.updateTeamToSeason(teamtoseason)
+                    for d in data:
+                        team = {'id': d['team']['id'], 'name': d['team']['name'], 'national': d['team']['national'],
+                                'countryid': country, 'slug': d['team']['name'].replace(' ', '-').lower()}
+
+                        if d['team']['code'] is not None:
+                            team['code'] = d['team']['code']
+
+                        if d['team']['logo'] is not None:
+                            team['logo'] = '/home/nico/api-football/team-logos/{}'.format(d['team']['logo'].split('/')[-1])
+                            r = requests.get(d['team']['logo'], allow_redirects=True)
+                            open(team['logo'], 'wb').write(r.content)
+
+                        teamtoseason = {'season_id': season_id, 'team_id': team['id']}
+
+                        print(team)
+                        mydb.updateTeam(team)
+                        mydb.updateTeamToSeason(teamtoseason)
 
             finally:
                 self.queue.task_done()

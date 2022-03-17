@@ -5,27 +5,40 @@ import os
 
 # 1 call per day.
 def countries():
-    url = 'https://v3.football.api-sports.io/countries'
+    url = "https://v3.football.api-sports.io/status"
+
     headers = {
         'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
         'x-rapidapi-host': 'v3.football.api-sports.io'
     }
 
     response = requests.get(url=url, headers=headers, timeout=60)
-    data = response.json()['response']
+    current = response.json()['response']['requests']['current']
+    limit_day = response.json()['response']['requests']['limit_day']
 
-    for d in data:
-        country = {'name': d['name'].replace('-', ' '), 'slug': d['name'].lower()}
-        if d['code'] is not None:
-            country['code2'] = d['code']
+    if current < limit_day:
 
-        if d['flag'] is not None:
-            country['flag'] = '/home/nico/api-football/country-flags/{}'.format(d['flag'].split('/')[-1])
-            r = requests.get(d['flag'], allow_redirects=True)
-            open(country['flag'], 'wb').write(r.content)
+        url = 'https://v3.football.api-sports.io/countries'
+        headers = {
+            'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+            'x-rapidapi-host': 'v3.football.api-sports.io'
+        }
 
-        print(country)
-        mydb.updateCountry(country)
+        response = requests.get(url=url, headers=headers, timeout=60)
+        data = response.json()['response']
+
+        for d in data:
+            country = {'name': d['name'].replace('-', ' '), 'slug': d['name'].lower()}
+            if d['code'] is not None:
+                country['code2'] = d['code']
+
+            if d['flag'] is not None:
+                country['flag'] = '/home/nico/api-football/country-flags/{}'.format(d['flag'].split('/')[-1])
+                r = requests.get(d['flag'], allow_redirects=True)
+                open(country['flag'], 'wb').write(r.content)
+
+            print(country)
+            mydb.updateCountry(country)
 
 
 # Press the green button in the gutter to run the script.

@@ -38,35 +38,48 @@ def odds(match_id):
 
 # 1 call per day.
 def odds_mapping():
-    url = "https://v3.football.api-sports.io/odds/mapping"
+    url = "https://v3.football.api-sports.io/status"
 
     headers = {
         'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
         'x-rapidapi-host': 'v3.football.api-sports.io'
     }
 
-    response = requests.get(url=url, headers=headers, timeout=60).json()
+    response = requests.get(url=url, headers=headers, timeout=60)
+    current = response.json()['response']['requests']['current']
+    limit_day = response.json()['response']['requests']['limit_day']
 
-    errors = response['errors']
-    # print('Errors:', len(errors))
-    if not errors:
-        paging = response['paging']['total']
-        for page in range(1, paging):
-            # print(page, paging)
-            url = "https://v3.football.api-sports.io/odds/mapping?page={}".format(page)
+    if current < limit_day:
 
-            headers = {
-                'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
-                'x-rapidapi-host': 'v3.football.api-sports.io'
-            }
+        url = "https://v3.football.api-sports.io/odds/mapping"
 
-            response = requests.get(url=url, headers=headers, timeout=60).json()
-            data = response['response']
-            # print(json.dumps(data, indent=4))
+        headers = {
+            'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+            'x-rapidapi-host': 'v3.football.api-sports.io'
+        }
 
-            if data:
-                match_id = data[0]['fixture']['id']
-                odds(match_id)
+        response = requests.get(url=url, headers=headers, timeout=60).json()
+
+        errors = response['errors']
+        # print('Errors:', len(errors))
+        if not errors:
+            paging = response['paging']['total']
+            for page in range(1, paging):
+                # print(page, paging)
+                url = "https://v3.football.api-sports.io/odds/mapping?page={}".format(page)
+
+                headers = {
+                    'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+                    'x-rapidapi-host': 'v3.football.api-sports.io'
+                }
+
+                response = requests.get(url=url, headers=headers, timeout=60).json()
+                data = response['response']
+                # print(json.dumps(data, indent=4))
+
+                if data:
+                    match_id = data[0]['fixture']['id']
+                    odds(match_id)
 
 
 # Press the green button in the gutter to run the script.
