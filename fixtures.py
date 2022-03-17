@@ -83,6 +83,8 @@ class Worker(Thread):
                         try:
                             response = requests.get(url=url, headers=headers, timeout=60)
                             success = response.ok
+                            if success and retries >0:
+                                logging.info("solved!")
                         except requests.exceptions.Timeout as timeout:
                             wait = retries * 30
                             logging.info("Timeout Error! Try again in {} seconds.".format(wait))
