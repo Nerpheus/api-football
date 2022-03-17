@@ -2,6 +2,7 @@ import json
 import requests
 import mydb
 from datetime import datetime, date
+import time
 from queue import Queue
 from threading import Thread
 import os
@@ -75,14 +76,21 @@ class Worker(Thread):
                         'x-rapidapi-host': 'v3.football.api-sports.io'
                     }
 
-                    status = False
+                    retries = 0
+                    success = False
 
-                    while not status:
-                        response = requests.get(url=url, headers=headers, timeout=60)
-                        status = response.ok
-                        if not status:
+                    while not success and retries <= 5:
+                        try:
+                            response = requests.get(url=url, headers=headers, timeout=60)
+                            success = response.ok
+                        except requests.exceptions.Timeout as timeout:
+                            wait = retries * 30
+                            logging.info("Timeout Error! Try again in {} seconds.".format(wait))
+                            # logging.info(timeout)
                             logging.info(response.status_code)
                             logging.info(response.json())
+                            time.sleep(wait)
+                            retries += 1
 
                     statistics = response.json()['response']
 
