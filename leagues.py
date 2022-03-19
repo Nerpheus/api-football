@@ -1,6 +1,12 @@
 import requests
 import mydb
 import os
+import time
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+logger = logging.getLogger(__name__)
 
 
 # 1 call per hour.
@@ -24,7 +30,24 @@ def leagues():
             'x-rapidapi-host': 'v3.football.api-sports.io'
         }
 
-        response = requests.get(url=url, headers=headers, timeout=60)
+        retries = 0
+        success = False
+
+        while not success and retries <= 5:
+            try:
+                response = requests.get(url=url, headers=headers, timeout=60)
+                success = response.ok
+                if success and retries > 0:
+                    logging.info("solved!")
+            except requests.exceptions.Timeout as timeout:
+                wait = retries * 30
+                logging.info("Timeout Error! Try again in {} seconds.".format(wait))
+                # logging.info(timeout)
+                logging.info(response.status_code)
+                logging.info(response.json())
+                time.sleep(wait)
+                retries += 1
+
         data = response.json()['response']
 
         for d in data:
