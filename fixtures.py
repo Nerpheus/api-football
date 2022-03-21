@@ -37,16 +37,18 @@ class Worker(Thread):
                     'x-rapidapi-host': 'v3.football.api-sports.io'
                 }
 
-                response = requests.get(url=url, headers=headers, timeout=60)
-                data = response.json()['response']
+                data = False
+                while not data:
+                    response = requests.get(url=url, headers=headers, timeout=60)
+                    data = response.json()['response']
 
                 current = data['requests']['current']
                 limit_day = data['requests']['limit_day']
 
                 if current < limit_day:
 
-                    url = "https://v3.football.api-sports.io/fixtures?league={}&season={}&timezone=Europe/Berlin".format(
-                        league_id, year)
+                    url = "https://v3.football.api-sports.io/fixtures?league={}&season={}&timezone=Europe/Berlin".\
+                        format(league_id, year)
 
                     headers = {
                         'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
@@ -65,101 +67,109 @@ class Worker(Thread):
                         except requests.exceptions.Timeout:
                             wait = retries * 30
                             logging.info("Timeout Error! Try again in {} seconds.".format(wait))
-                            # logging.info(timeout)
-                            logging.info(response.status_code)
-                            logging.info(response.json())
                             time.sleep(wait)
                             retries += 1
+                        else:
+                            errors = response.json()['errors']
+                            if not errors:
+                                data = response.json()['response']
+                                # print(json.dumps(data, indent=4))
 
-                    data = response.json()['response']
+                                for d in data:
+                                    match_id = d['fixture']['id']
 
-                    # print(json.dumps(data, indent=4))
+                                    fixture = {'id': match_id,
+                                               'date': datetime.fromtimestamp(d['fixture']['timestamp']),
+                                               'status_long': d['fixture']['status']['long'],
+                                               'status_short': d['fixture']['status']['short'],
+                                               'season_id': season_id, 'round': d['league']['round'],
+                                               'homescore_ht': d['score']['halftime']['home'],
+                                               'awayscore_ht': d['score']['halftime']['away'],
+                                               'homescore_ft': d['score']['fulltime']['home'],
+                                               'awayscore_ft': d['score']['fulltime']['away'],
+                                               'homescore_et': d['score']['extratime']['home'],
+                                               'awayscore_et': d['score']['extratime']['away'],
+                                               'homescore_p': d['score']['penalty']['home'],
+                                               'awayscore_p': d['score']['penalty']['away'],
+                                               'slug': d['teams']['home']['name'] + "-" + d['teams']['away'][
+                                                   'name'] + "-" + str(d['fixture']['id'])}
 
-                    for d in data:
-                        match_id = d['fixture']['id']
+                                    teams = False
+                                    while not teams:
+                                        try:
+                                            fixture['hometeam_id'] = mydb.getTeamToSeason(d['teams']['home']['id'],
+                                                                                          season_id)[0][0]
+                                            fixture['awayteam_id'] = mydb.getTeamToSeason(d['teams']['away']['id'],
+                                                                                          season_id)[0][0]
+                                            teams = True
+                                        except IndexError:
+                                            oneSeason(season_id, year, league_id, country)
 
-                        fixture = {'id': match_id, 'date': datetime.fromtimestamp(d['fixture']['timestamp']),
-                                   'status_long': d['fixture']['status']['long'],
-                                   'status_short': d['fixture']['status']['short'],
-                                   'season_id': season_id, 'round': d['league']['round'],
-                                   'homescore_ht': d['score']['halftime']['home'],
-                                   'awayscore_ht': d['score']['halftime']['away'],
-                                   'homescore_ft': d['score']['fulltime']['home'],
-                                   'awayscore_ft': d['score']['fulltime']['away'],
-                                   'homescore_et': d['score']['extratime']['home'],
-                                   'awayscore_et': d['score']['extratime']['away'],
-                                   'homescore_p': d['score']['penalty']['home'],
-                                   'awayscore_p': d['score']['penalty']['away'],
-                                   'slug': d['teams']['home']['name'] + "-" + d['teams']['away']['name'] + "-" + str(
-                                       d['fixture']['id'])}
+                                    print(fixture)
+                                    mydb.updateFixture(fixture)
 
-                        teams = False
-                        while not teams:
-                            try:
-                                fixture['hometeam_id'] = mydb.getTeamToSeason(d['teams']['home']['id'], season_id)[0][0]
-                                fixture['awayteam_id'] = mydb.getTeamToSeason(d['teams']['away']['id'], season_id)[0][0]
-                                teams = True
-                            except IndexError:
-                                oneSeason(season_id, year, league_id, country)
+                                    url = "https://v3.football.api-sports.io/fixtures/statistics?fixture={}".format(
+                                        match_id)
 
-                        print(fixture)
-                        mydb.updateFixture(fixture)
+                                    headers = {
+                                        'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+                                        'x-rapidapi-host': 'v3.football.api-sports.io'
+                                    }
 
-                        url = "https://v3.football.api-sports.io/fixtures/statistics?fixture={}".format(match_id)
+                                    retries = 1
+                                    success = False
 
-                        headers = {
-                            'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
-                            'x-rapidapi-host': 'v3.football.api-sports.io'
-                        }
+                                    while not success and retries <= 5:
+                                        try:
+                                            response = requests.get(url=url, headers=headers, timeout=60)
+                                            success = response.ok
+                                            if success and retries > 1:
+                                                logging.info("solved!")
+                                        except requests.exceptions.Timeout:
+                                            wait = retries * 30
+                                            logging.info("Timeout Error! Try again in {} seconds.".format(wait))
+                                            time.sleep(wait)
+                                            retries += 1
+                                        else:
+                                            errors = response.json()['errors']
+                                            if not errors:
+                                                statistics = response.json()['response']
 
-                        retries = 0
-                        success = False
+                                                # print(json.dumps(statistics, indent=4))
 
-                        while not success and retries <= 5:
-                            try:
-                                response = requests.get(url=url, headers=headers, timeout=60)
-                                success = response.ok
-                                if success and retries >0:
-                                    logging.info("solved!")
-                            except requests.exceptions.Timeout as timeout:
-                                wait = retries * 30
-                                logging.info("Timeout Error! Try again in {} seconds.".format(wait))
-                                # logging.info(timeout)
-                                logging.info(response.status_code)
-                                logging.info(response.json())
-                                time.sleep(wait)
-                                retries += 1
+                                                if statistics:
 
-                        statistics = response.json()['response']
+                                                    stats = {'id': match_id}
 
-                        # print(json.dumps(statistics, indent=4))
+                                                    hometeam = statistics[0]['statistics']
+                                                    for t in hometeam:
+                                                        if t['value'] is not None:
+                                                            name = t['type'].replace(' ', '_').replace(
+                                                                '%', 'percent').lower() + '_h'
+                                                            if t['type'] == 'Ball Possession' or \
+                                                                    t['type'] == 'Passes %':
+                                                                stats[name] = int(t['value'].replace('%', '')) / 100
+                                                            else:
+                                                                stats[name] = t['value']
 
-                        if statistics:
+                                                    awayteam = statistics[1]['statistics']
+                                                    for t in awayteam:
+                                                        if t['value'] is not None:
+                                                            name = t['type'].replace(' ', '_').replace(
+                                                                '%', 'percent').lower() + '_a'
+                                                            if t['type'] == 'Ball Possession' \
+                                                                    or t['type'] == 'Passes %':
+                                                                stats[name] = int(t['value'].replace('%', '')) / 100
+                                                            else:
+                                                                stats[name] = t['value']
 
-                            stats = {'id': match_id}
+                                                    print(stats)
+                                                    mydb.updateStats(stats)
 
-                            hometeam = statistics[0]['statistics']
-                            for t in hometeam:
-                                if t['value'] is not None:
-                                    name = t['type'].replace(' ', '_').replace('%', 'percent').lower() + '_h'
-                                    if t['type'] == 'Ball Possession' or t['type'] == 'Passes %':
-                                        stats[name] = int(t['value'].replace('%', '')) / 100
-                                    else:
-                                        stats[name] = t['value']
+                                mydb.seasonLastUpdated(season_id, date.today())
 
-                            awayteam = statistics[1]['statistics']
-                            for t in awayteam:
-                                if t['value'] is not None:
-                                    name = t['type'].replace(' ', '_').replace('%', 'percent').lower() + '_a'
-                                    if t['type'] == 'Ball Possession' or t['type'] == 'Passes %':
-                                        stats[name] = int(t['value'].replace('%', '')) / 100
-                                    else:
-                                        stats[name] = t['value']
-
-                            print(stats)
-                            mydb.updateStats(stats)
-
-                    mydb.seasonLastUpdated(season_id, date.today())
+                else:
+                    logging.info("Requests für heute aufgebraucht.")
 
             finally:
                 self.queue.task_done()
