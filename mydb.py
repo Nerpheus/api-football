@@ -202,6 +202,20 @@ def updateTeam(team):
     pushQuery(sql)
 
 
+def getTeam(team_id):
+    connection = getDatabase()
+    cursor = connection.cursor()
+    sql = '''SELECT * 
+        FROM team 
+        WHERE team_id="{}"'''.format(team_id)
+    cursor.execute(sql)
+    team = cursor.fetchall()
+    cursor.close()
+    connection.close()
+
+    return team
+
+
 def updateTeamToSeason(teamtoseason):
     columns = ', '.join(teamtoseason.keys())
     spalten = []

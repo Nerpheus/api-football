@@ -78,9 +78,6 @@ class Worker(Thread):
                                 for d in data:
                                     match_id = d['fixture']['id']
 
-                                    if d['teams']['home']['name'] is None or d['teams']['away']['name'] is None:
-                                        logging.info(json.dumps(d, indent=4))
-
                                     fixture = {'id': match_id,
                                                'date': datetime.fromtimestamp(d['fixture']['timestamp']),
                                                'status_long': d['fixture']['status']['long'],
@@ -93,9 +90,10 @@ class Worker(Thread):
                                                'homescore_et': d['score']['extratime']['home'],
                                                'awayscore_et': d['score']['extratime']['away'],
                                                'homescore_p': d['score']['penalty']['home'],
-                                               'awayscore_p': d['score']['penalty']['away'],
-                                               'slug': d['teams']['home']['name'] + "-" + d['teams']['away'][
-                                                   'name'] + "-" + str(d['fixture']['id'])}
+                                               'awayscore_p': d['score']['penalty']['away']}
+
+                                    fixture['slug'] = mydb.getTeam(d['teams']['home']['id'])[0][a] + "-" \
+                                        + mydb.getTeam(d['teams']['away']['id'])[0][a] + "-" + str(d['fixture']['id'])
 
                                     teams = False
                                     while not teams:
