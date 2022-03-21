@@ -78,6 +78,9 @@ class Worker(Thread):
                                 for d in data:
                                     match_id = d['fixture']['id']
 
+                                    if d['teams']['home']['name'] is None or d['teams']['away']['name'] is None:
+                                        logging.info(json.dumps(d, indent=4))
+
                                     fixture = {'id': match_id,
                                                'date': datetime.fromtimestamp(d['fixture']['timestamp']),
                                                'status_long': d['fixture']['status']['long'],
