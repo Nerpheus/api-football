@@ -47,7 +47,7 @@ class Worker(Thread):
 
                 if current < limit_day:
 
-                    url = "https://v3.football.api-sports.io/fixtures?league={}&season={}&timezone=Europe/Berlin".\
+                    url = "https://v3.football.api-sports.io/fixtures?league={}&season={}&timezone=Europe/Berlin". \
                         format(league_id, year)
 
                     headers = {
@@ -81,8 +81,8 @@ class Worker(Thread):
                                     fixture = {'id': match_id,
                                                'date': datetime.fromtimestamp(d['fixture']['timestamp']),
                                                'status_long': d['fixture']['status']['long'],
-                                               'status_short': d['fixture']['status']['short'],
-                                               'season_id': season_id, 'round': d['league']['round'],
+                                               'status_short': d['fixture']['status']['short'], 'season_id': season_id,
+                                               'round': d['league']['round'],
                                                'homescore_ht': d['score']['halftime']['home'],
                                                'awayscore_ht': d['score']['halftime']['away'],
                                                'homescore_ft': d['score']['fulltime']['home'],
@@ -90,10 +90,11 @@ class Worker(Thread):
                                                'homescore_et': d['score']['extratime']['home'],
                                                'awayscore_et': d['score']['extratime']['away'],
                                                'homescore_p': d['score']['penalty']['home'],
-                                               'awayscore_p': d['score']['penalty']['away']}
-
-                                    fixture['slug'] = mydb.getTeam(d['teams']['home']['id'])[0][a] + "-" \
-                                        + mydb.getTeam(d['teams']['away']['id'])[0][a] + "-" + str(d['fixture']['id'])
+                                               'awayscore_p': d['score']['penalty']['away'],
+                                               'slug': mydb.getTeam(
+                                                   d['teams']['home']['id'])[0][1] + "-" + mydb.getTeam(
+                                                   d['teams']['away']['id'])[0][1] + "-" + str(
+                                                   d['fixture']['id'])}
 
                                     teams = False
                                     while not teams:
