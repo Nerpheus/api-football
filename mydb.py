@@ -36,6 +36,19 @@ def pushQuery(sql):
     connection.close()
 
 
+def countFixtures():
+    connection = getDatabase()
+    cursor = connection.cursor()
+    sql = '''SELECT COUNT(*) 
+        FROM fixture'''
+    cursor.execute(sql)
+    fixtures = cursor.fetchall()
+    cursor.close()
+    connection.close()
+
+    logging.info("Anzahl Fixtures: {}".format(len(fixtures)))
+
+
 def updateCountry(country):
     columns = ', '.join(country.keys())
     spalten = []
