@@ -69,11 +69,13 @@ def status():
     }
 
     response = requests.get(url=url, headers=headers, timeout=60)
-    current = response.json()['response']['requests']['current']
-    limit_day = response.json()['response']['requests']['limit_day']
+    data = response.json()['response']
 
-    print(current)
-    print(limit_day)
+    current = data['requests']['current']
+    limit_day = data['requests']['limit_day']
+
+    print(json.dumps(data, indent=4))
+    print(current, limit_day)
 
 
 # Press the green button in the gutter to run the script.

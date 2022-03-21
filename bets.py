@@ -20,8 +20,10 @@ def bets():
     }
 
     response = requests.get(url=url, headers=headers, timeout=60)
-    current = response.json()['response']['requests']['current']
-    limit_day = response.json()['response']['requests']['limit_day']
+    data = response.json()['response']
+
+    current = data['requests']['current']
+    limit_day = data['requests']['limit_day']
 
     if current < limit_day:
 
