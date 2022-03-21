@@ -34,33 +34,32 @@ def bookmakers():
             'x-rapidapi-host': 'v3.football.api-sports.io'
         }
 
-        retries = 0
+        retries = 1
         success = False
 
         while not success and retries <= 5:
             try:
                 response = requests.get(url=url, headers=headers, timeout=60)
                 success = response.ok
-                if success and retries > 0:
+                if success and retries > 1:
                     logging.info("solved!")
-            except requests.exceptions.Timeout as timeout:
+            except requests.exceptions.Timeout:
                 wait = retries * 30
                 logging.info("Timeout Error! Try again in {} seconds.".format(wait))
-                # logging.info(timeout)
-                logging.info(response.status_code)
-                logging.info(response.json())
                 time.sleep(wait)
                 retries += 1
+            else:
+                errors = response.json()['errors']
+                if not errors:
+                    bookies = response.json()['response']
 
-        bookies = response.json()['response']
+                    for b in bookies:
+                        bookie = {'id': b['id'], 'name': b['name']}
 
-        # print(json.dumps(bookies, indent=4))
-
-        for b in bookies:
-            bookie = {'id': b['id'], 'name': b['name']}
-
-            print(bookie)
-            mydb.updateBookmaker(bookie)
+                        print(bookie)
+                        mydb.updateBookmaker(bookie)
+    else:
+        logging.info("Requests für heute aufgebraucht.")
 
 
 # Press the green button in the gutter to run the script.
