@@ -82,7 +82,6 @@ def odds_mapping():
                 retries += 1
             else:
                 errors = response.json()['errors']
-                # print('Errors:', len(errors))
                 if not errors:
                     paging = response.json()['paging']['total']
                     for page in range(1, paging):
