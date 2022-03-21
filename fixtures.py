@@ -160,7 +160,7 @@ class Worker(Thread):
 def fixtures():
     queue = Queue()
     # Create 10 worker threads
-    for x in range(10):
+    for x in range(1):
         worker = Worker(queue)
         # Setting daemon to True will let the main thread exit even though the workers are blocking
         worker.daemon = True
