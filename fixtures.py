@@ -90,14 +90,14 @@ class Worker(Thread):
                                                'homescore_et': d['score']['extratime']['home'],
                                                'awayscore_et': d['score']['extratime']['away'],
                                                'homescore_p': d['score']['penalty']['home'],
-                                               'awayscore_p': d['score']['penalty']['away'],
-                                               'slug': (mydb.getTeam(d['teams']['home']['id'])[0][1] + "-" +
-                                                        mydb.getTeam(d['teams']['away']['id'])[0][1] + "-" +
-                                                        str(d['fixture']['id']))}
+                                               'awayscore_p': d['score']['penalty']['away']}
 
                                     teams = False
                                     while not teams:
                                         try:
+                                            fixture['slug'] = mydb.getTeam(d['teams']['home']['id'])[0][1] + "-" + \
+                                                mydb.getTeam(d['teams']['away']['id'])[0][1] + "-" + \
+                                                str(d['fixture']['id'])
                                             fixture['hometeam_id'] = mydb.getTeamToSeason(d['teams']['home']['id'],
                                                                                           season_id)[0][0]
                                             fixture['awayteam_id'] = mydb.getTeamToSeason(d['teams']['away']['id'],
