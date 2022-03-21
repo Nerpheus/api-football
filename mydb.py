@@ -207,7 +207,7 @@ def getTeam(team_id):
     cursor = connection.cursor()
     sql = '''SELECT * 
         FROM team 
-        WHERE team_id="{}"'''.format(team_id)
+        WHERE id="{}"'''.format(team_id)
     cursor.execute(sql)
     team = cursor.fetchall()
     cursor.close()
