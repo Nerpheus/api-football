@@ -177,26 +177,44 @@ class Worker(Thread):
 
 
 def fixtures():
-    queue = Queue()
-    # Create 10 worker threads
-    for x in range(10):
-        worker = Worker(queue)
-        # Setting daemon to True will let the main thread exit even though the workers are blocking
-        worker.daemon = True
-        worker.start()
+    url = "https://v3.football.api-sports.io/status"
 
-    # Put the tasks into the queue as a tuple
-    all_seasons = mydb.getSeasons()
-    for season in all_seasons:
-        season_id = season[0]
-        year = season[1]
-        league_id = season[5]
-        country = mydb.getLeague(league_id)[0][2]
+    headers = {
+        'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+        'x-rapidapi-host': 'v3.football.api-sports.io'
+    }
 
-        queue.put((season_id, year, league_id, country))
+    data = False
+    while not data:
+        response = requests.get(url=url, headers=headers, timeout=60)
+        data = response.json()['response']
 
-    # Causes the main thread to wait for the queue to finish processing all the tasks
-    queue.join()
+    current = data['requests']['current']
+    limit_day = data['requests']['limit_day']
+
+    if current < limit_day:
+        queue = Queue()
+        # Create 10 worker threads
+        for x in range(10):
+            worker = Worker(queue)
+            # Setting daemon to True will let the main thread exit even though the workers are blocking
+            worker.daemon = True
+            worker.start()
+
+        # Put the tasks into the queue as a tuple
+        all_seasons = mydb.getSeasons()
+        for season in all_seasons:
+            season_id = season[0]
+            year = season[1]
+            league_id = season[5]
+            country = mydb.getLeague(league_id)[0][2]
+
+            queue.put((season_id, year, league_id, country))
+
+        # Causes the main thread to wait for the queue to finish processing all the tasks
+        queue.join()
+    else:
+        logging.info("Requests für heute aufgebraucht.")
 
 
 # Press the green button in the gutter to run the script.
