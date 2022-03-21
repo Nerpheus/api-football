@@ -91,10 +91,9 @@ class Worker(Thread):
                                                'awayscore_et': d['score']['extratime']['away'],
                                                'homescore_p': d['score']['penalty']['home'],
                                                'awayscore_p': d['score']['penalty']['away'],
-                                               'slug': mydb.getTeam(
-                                                   d['teams']['home']['id'])[0][1] + "-" + mydb.getTeam(
-                                                   d['teams']['away']['id'])[0][1] + "-" + str(
-                                                   d['fixture']['id'])}
+                                               'slug': (mydb.getTeam(d['teams']['home']['id'])[0][1] + "-" +
+                                                        mydb.getTeam(d['teams']['away']['id'])[0][1] + "-" +
+                                                        str(d['fixture']['id']))}
 
                                     teams = False
                                     while not teams:
