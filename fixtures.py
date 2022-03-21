@@ -4,6 +4,7 @@ import mydb
 from datetime import datetime, date
 from queue import Queue
 from threading import Thread
+from teams import oneSeason
 import os
 import time
 import logging
@@ -89,10 +90,17 @@ class Worker(Thread):
                                    'awayscore_et': d['score']['extratime']['away'],
                                    'homescore_p': d['score']['penalty']['home'],
                                    'awayscore_p': d['score']['penalty']['away'],
-                                   'hometeam_id': mydb.getTeamToSeason(d['teams']['home']['id'], season_id)[0][0],
-                                   'awayteam_id': mydb.getTeamToSeason(d['teams']['away']['id'], season_id)[0][0],
                                    'slug': d['teams']['home']['name'] + "-" + d['teams']['away']['name'] + "-" + str(
                                        d['fixture']['id'])}
+
+                        teams = False
+                        while not teams:
+                            try:
+                                fixture['hometeam_id'] = mydb.getTeamToSeason(d['teams']['home']['id'], season_id)[0][0]
+                                fixture['awayteam_id'] = mydb.getTeamToSeason(d['teams']['away']['id'], season_id)[0][0]
+                                teams = True
+                            except IndexError:
+                                oneSeason(season_id, year, league_id, country)
 
                         print(fixture)
                         mydb.updateFixture(fixture)
