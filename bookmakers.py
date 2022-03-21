@@ -19,8 +19,10 @@ def bookmakers():
         'x-rapidapi-host': 'v3.football.api-sports.io'
     }
 
-    response = requests.get(url=url, headers=headers, timeout=60)
-    data = response.json()['response']
+    data = False
+    while not data:
+        response = requests.get(url=url, headers=headers, timeout=60)
+        data = response.json()['response']
 
     current = data['requests']['current']
     limit_day = data['requests']['limit_day']

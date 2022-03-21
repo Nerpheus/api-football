@@ -1,3 +1,4 @@
+import json
 import requests
 import mydb
 from datetime import date, datetime
@@ -35,45 +36,45 @@ def oneSeason(season_id, year, league_id, country):
             'x-rapidapi-host': 'v3.football.api-sports.io'
         }
 
-        retries = 0
+        retries = 1
         success = False
 
         while not success and retries <= 5:
             try:
                 response = requests.get(url=url, headers=headers, timeout=60)
                 success = response.ok
-                if success and retries > 0:
+                if success and retries > 1:
                     logging.info("solved!")
-            except requests.exceptions.Timeout as timeout:
+            except requests.exceptions.Timeout:
                 wait = retries * 30
                 logging.info("Timeout Error! Try again in {} seconds.".format(wait))
-                # logging.info(timeout)
-                logging.info(response.status_code)
-                logging.info(response.json())
                 time.sleep(wait)
                 retries += 1
+            else:
+                errors = response.json()['errors']
+                if not errors:
+                    data = response.json()['response']
 
-        data = response.json()['response']
+                    for d in data:
+                        team = {'id': d['team']['id'], 'name': d['team']['name'], 'national': d['team']['national'],
+                                'countryid': country, 'slug': d['team']['name'].replace(' ', '-').lower()}
 
-        # print(json.dumps(data, indent=4))
+                        if d['team']['code'] is not None:
+                            team['code'] = d['team']['code']
 
-        for d in data:
-            team = {'id': d['team']['id'], 'name': d['team']['name'], 'national': d['team']['national'],
-                    'countryid': country, 'slug': d['team']['name'].replace(' ', '-').lower()}
+                        if d['team']['logo'] is not None:
+                            team['logo'] = 'team-logos/{}'.format(
+                                d['team']['logo'].split('/')[-1])
+                            r = requests.get(d['team']['logo'], allow_redirects=True)
+                            open(team['logo'], 'wb').write(r.content)
 
-            if d['team']['code'] is not None:
-                team['code'] = d['team']['code']
+                        teamtoseason = {'season_id': season_id, 'team_id': team['id']}
 
-            if d['team']['logo'] is not None:
-                team['logo'] = '/home/nico/api-football/team-logos/{}'.format(d['team']['logo'].split('/')[-1])
-                r = requests.get(d['team']['logo'], allow_redirects=True)
-                open(team['logo'], 'wb').write(r.content)
-
-            teamtoseason = {'season_id': season_id, 'team_id': team['id']}
-
-            print(team)
-            mydb.updateTeam(team)
-            mydb.updateTeamToSeason(teamtoseason)
+                        # print(team)
+                        mydb.updateTeam(team)
+                        mydb.updateTeamToSeason(teamtoseason)
+    else:
+        logging.info("Requests für heute aufgebraucht.")
 
 
 # 1 call per day.
@@ -94,8 +95,12 @@ class Worker(Thread):
                     'x-rapidapi-host': 'v3.football.api-sports.io'
                 }
 
-                response = requests.get(url=url, headers=headers, timeout=60)
-                data = response.json()['response']
+                data = False
+                while not data:
+                    response = requests.get(url=url, headers=headers, timeout=60)
+                    data = response.json()['response']
+
+                # print(json.dumps(data, indent=4))
 
                 current = data['requests']['current']
                 limit_day = data['requests']['limit_day']
@@ -109,45 +114,47 @@ class Worker(Thread):
                         'x-rapidapi-host': 'v3.football.api-sports.io'
                     }
 
-                    retries = 0
+                    retries = 1
                     success = False
 
                     while not success and retries <= 5:
                         try:
                             response = requests.get(url=url, headers=headers, timeout=60)
                             success = response.ok
-                            if success and retries > 0:
+                            if success and retries > 1:
                                 logging.info("solved!")
-                        except requests.exceptions.Timeout as timeout:
+                        except requests.exceptions.Timeout:
                             wait = retries * 30
                             logging.info("Timeout Error! Try again in {} seconds.".format(wait))
-                            # logging.info(timeout)
-                            logging.info(response.status_code)
-                            logging.info(response.json())
                             time.sleep(wait)
                             retries += 1
+                        else:
+                            errors = response.json()['errors']
+                            if not errors:
+                                data = response.json()['response']
 
-                    data = response.json()['response']
+                                for d in data:
+                                    team = {'id': d['team']['id'], 'name': d['team']['name'],
+                                            'national': d['team']['national'],
+                                            'countryid': country, 'slug': d['team']['name'].replace(' ', '-').lower()}
 
-                    # print(json.dumps(data, indent=4))
+                                    if d['team']['code'] is not None:
+                                        team['code'] = d['team']['code']
 
-                    for d in data:
-                        team = {'id': d['team']['id'], 'name': d['team']['name'], 'national': d['team']['national'],
-                                'countryid': country, 'slug': d['team']['name'].replace(' ', '-').lower()}
+                                    if d['team']['logo'] is not None:
+                                        team['logo'] = 'team-logos/{}'.format(
+                                            d['team']['logo'].split('/')[-1])
+                                        r = requests.get(d['team']['logo'], allow_redirects=True)
+                                        open(team['logo'], 'wb').write(r.content)
 
-                        if d['team']['code'] is not None:
-                            team['code'] = d['team']['code']
+                                    teamtoseason = {'season_id': season_id, 'team_id': team['id']}
 
-                        if d['team']['logo'] is not None:
-                            team['logo'] = '/home/nico/api-football/team-logos/{}'.format(d['team']['logo'].split('/')[-1])
-                            r = requests.get(d['team']['logo'], allow_redirects=True)
-                            open(team['logo'], 'wb').write(r.content)
+                                    # print(team)
+                                    mydb.updateTeam(team)
+                                    mydb.updateTeamToSeason(teamtoseason)
 
-                        teamtoseason = {'season_id': season_id, 'team_id': team['id']}
-
-                        print(team)
-                        mydb.updateTeam(team)
-                        mydb.updateTeamToSeason(teamtoseason)
+                else:
+                    logging.info("Requests für heute aufgebraucht.")
 
             finally:
                 self.queue.task_done()
