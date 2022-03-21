@@ -66,44 +66,43 @@ def odds_mapping():
             'x-rapidapi-host': 'v3.football.api-sports.io'
         }
 
-        retries = 0
+        retries = 1
         success = False
 
         while not success and retries <= 5:
             try:
                 response = requests.get(url=url, headers=headers, timeout=60)
                 success = response.ok
-                if success and retries > 0:
+                if success and retries > 1:
                     logging.info("solved!")
-            except requests.exceptions.Timeout as timeout:
+            except requests.exceptions.Timeout:
                 wait = retries * 30
                 logging.info("Timeout Error! Try again in {} seconds.".format(wait))
-                # logging.info(timeout)
-                logging.info(response.status_code)
-                logging.info(response.json())
                 time.sleep(wait)
                 retries += 1
+            else:
+                errors = response.json()['errors']
+                # print('Errors:', len(errors))
+                if not errors:
+                    paging = response.json()['paging']['total']
+                    for page in range(1, paging):
+                        # print(page, paging)
+                        url = "https://v3.football.api-sports.io/odds/mapping?page={}".format(page)
 
-        errors = response['errors']
-        # print('Errors:', len(errors))
-        if not errors:
-            paging = response['paging']['total']
-            for page in range(1, paging):
-                # print(page, paging)
-                url = "https://v3.football.api-sports.io/odds/mapping?page={}".format(page)
+                        headers = {
+                            'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
+                            'x-rapidapi-host': 'v3.football.api-sports.io'
+                        }
 
-                headers = {
-                    'x-rapidapi-key': os.environ["API_FOOTBALL_KEY"],
-                    'x-rapidapi-host': 'v3.football.api-sports.io'
-                }
+                        response = requests.get(url=url, headers=headers, timeout=60).json()
+                        matches = response['response']
+                        # print(json.dumps(data, indent=4))
 
-                response = requests.get(url=url, headers=headers, timeout=60).json()
-                data = response['response']
-                # print(json.dumps(data, indent=4))
-
-                if data:
-                    match_id = data[0]['fixture']['id']
-                    odds(match_id)
+                        if data:
+                            match_id = matches[0]['fixture']['id']
+                            odds(match_id)
+    else:
+        logging.info("Requests für heute aufgebraucht.")
 
 
 # Press the green button in the gutter to run the script.
