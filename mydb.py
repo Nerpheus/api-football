@@ -42,11 +42,11 @@ def countFixtures():
     sql = '''SELECT COUNT(*) 
         FROM fixture'''
     cursor.execute(sql)
-    fixtures = cursor.fetchall()
+    fixtures = cursor.fetchone()
     cursor.close()
     connection.close()
 
-    logging.info("Anzahl Fixtures: {}".format(len(fixtures)))
+    logging.info("Anzahl Fixtures: {}".format(fixtures[0]))
 
 
 def updateCountry(country):
