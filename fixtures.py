@@ -169,9 +169,6 @@ class Worker(Thread):
 
                                 mydb.seasonLastUpdated(season_id, date.today())
 
-                else:
-                    logging.info("Requests für heute aufgebraucht.")
-
             finally:
                 self.queue.task_done()
 
